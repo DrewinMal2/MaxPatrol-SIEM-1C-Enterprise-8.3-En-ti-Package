@@ -1,0 +1,33 @@
+event Login_request_Admin_claster:
+    key:
+        object.name
+    filter {
+        (action == "access" and status == "failure" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account")
+
+    }
+
+rule MMC_1C_Bruteforce_AdminClaster:(Login_request_Admin_claster[5]) within 1m
+
+on Login_request_Admin_claster {
+    $event_src.host = event_src.host
+    $subject.process.name = subject.process.name
+    $status = status
+}
+
+emit {
+    $correlation_name = "MMC_1C_Bruteforce_AdminClaster"
+    $correlation_type = "incident"
+
+    $category.generic = "Attacks & Recon"
+    $category.high = "Attack"
+    $category.low = "Bruteforce"
+
+    $id = "MMC_1C_Bruteforce_AdminClaster"
+    $importance = "high"
+
+    $datafield12 = "MITRE ATT&CK Тактика: Credential Access (TA0006)"
+    $datafield13 = "MITRE ATT&CK Техника: T1110 – Brute Force"
+    $datafield14 = "Cyber Kill Chain: Step 4 - Exploitation"
+    $datafield15 = "БДУ ФСТЭК: Группа способов:	СП.17 Подбор (восстановление) аутентификационной информации"
+    $datafield16 = "БДУ ФСТЭК: Способ реализации: СП.17.1 Перебор паролей к учетной записи"
+}
