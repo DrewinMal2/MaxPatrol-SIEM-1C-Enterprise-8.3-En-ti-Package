@@ -1,0 +1,11 @@
+event C_external_processing:
+    filter {
+        object.type == "Сеанс. Подключение внешней обработки"
+    }
+enrichment extract_external_processing_name
+    enrich C_external_processing:
+        enrich_fields {
+             
+            object.value = regex(object.path, ".*\\\\(.+)$", 1)
+                
+            }
