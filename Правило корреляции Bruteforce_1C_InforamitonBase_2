@@ -1,0 +1,44 @@
+event Login_request:
+    key:
+        datafield1
+    filter {
+        (object.name == "authenticateAdmin" and status == "ongoing" and object == "account" and action == "access" and subject.process.name == "mmc")
+
+    }
+
+event BD_request_open:
+    key:
+        datafield1
+    filter {
+        (status == "failure" and object.name == "getBinaryDataStorages" and object == "database" and object.name == "getBinaryDataStorages" and subject.process.name == "mmc"  )
+    }
+
+rule Bruteforce_1C_InforamitonBase_2:(Login_request[5] and BD_request_open[5]) within 1m
+
+on Login_request {
+    $event_src.host = event_src.host
+    $subject.process.name = subject.process.name
+}
+
+on BD_request_open {
+    $status = status
+}
+
+
+emit {
+    $correlation_name = "Bruteforce_1C_InforamitonBase_2"
+    $correlation_type = "incident"
+
+    $category.generic = "Attacks & Recon"
+    $category.high = "Attack"
+    $category.low = "Bruteforce"
+
+    $id = "Bruteforce_1C_InforamitonBase_2"
+    $importance = "high"
+
+    $datafield12 = "MITRE ATT&CK Тактика: Credential Access (TA0006)"
+    $datafield13 = "MITRE ATT&CK Техника: T1110 – Brute Force"
+    $datafield14 = "Cyber Kill Chain: Step 4 - Exploitation"
+    $datafield15 = "БДУ ФСТЭК: Группа способов:	СП.17 Подбор (восстановление) аутентификационной информации"
+    $datafield16 = "БДУ ФСТЭК: Способ реализации: СП.17.1 Перебор паролей к учетной записи"
+}
