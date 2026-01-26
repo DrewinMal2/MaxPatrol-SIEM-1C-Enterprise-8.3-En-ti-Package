@@ -1,0 +1,69 @@
+event Profile_Security_open_false:
+    key:
+        event_src.host
+    filter {
+        (action == "open" and object.name == "getSecurityProfiles" and object == "policy" and object.type == "IServerClusterAdmin" and status == "failure" and subject.process.name == "mmc") 
+    }
+
+event Brute_Force_Admin_claster:
+    key:
+        event_src.host
+    filter {
+        (subject.process.name == "mmc" and correlation_type == "incident" and correlation_name == "MMC_1C_Bruteforce_AdminClaster" )
+
+    }
+
+event Login_request_Admin_claster_true:
+    key:
+        event_src.host
+    filter {
+        (action == "access" and status == "success" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account")
+
+    }
+
+event Profile_Security_open_true:
+    key:
+        event_src.host
+    filter {
+        (action == "open" and object.name == "getSecurityProfiles" and object == "policy" and object.type == "IServerClusterAdmin" and status == "success" and subject.process.name == "mmc")
+    }
+
+event Delete_SecProfile:
+    key:
+        event_src.host
+    filter {
+        (action == "remove" and object.name == "dropSecurityProfile" and object == "policy" and object.type == "IServerClusterAdmin" and status == "success" and subject.process.name == "mmc")
+    }
+
+rule MMC_1C_Deleting_security_profile:(Profile_Security_open_false and Brute_Force_Admin_claster and Login_request_Admin_claster_true and Profile_Security_open_true and Delete_SecProfile[2]) within 10m
+
+on Profile_Security_open_false{
+    $event_src.host = event_src.host
+    $subject.process.name = subject.process.name
+
+}
+
+
+emit {
+    $correlation_name = "MMC_1C_Deleting_security_profile"
+    $correlation_type = "incident"
+
+    $category.generic = "Attacks & Recon"
+    $category.high = "Attack"
+    $category.low = "Potential Attack"
+
+    $id = "MMC_1C_Deleting_security_profile"
+    $importance = "high"
+
+    $datafield12 = "MITRE ATT&CK Тактики: TA0001 Initial Access, TA0004 Privilege Escalation, TA0007 Discovery, TA0005 Defense Evasion, TA0040 Impact"
+
+    $datafield13 = "MITRE ATT&CK Техники: T1078 Valid Accounts, T1087 Account Discovery, T1562.001 Disable or Modify Security Tools, T1098 Account Manipulation"
+
+    $datafield14 = "Cyber Kill Chain: Step 1 Reconnaissance → Step 3 Delivery → Step 4 Exploitation → Step 7 Actions on Objectives"
+    
+    $datafield15 = "БДУ ФСТЭК: Группа способов:	СП.17 Подбор (восстановление) аутентификационной информации"
+    $datafield16 = "БДУ ФСТЭК: Способ реализации: СП.17.1 Перебор паролей к учетной записи"
+
+    $datafield17 = "БДУ ФСТЭК: Группа способов:	СП.9 Изучение информации о системе"
+    $datafield18 = "БДУ ФСТЭК: Способ реализации: СП.9.4 Получение данных о настройках безопасности"
+}
