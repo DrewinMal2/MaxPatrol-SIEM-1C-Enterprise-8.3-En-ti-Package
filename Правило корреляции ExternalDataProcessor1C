@@ -1,0 +1,131 @@
+query ExternalTreatments ($object.value) from Externaltreatments1c_2 {
+    column::name == $object.value
+}
+
+event Authentication_on_the_machine:
+    key:
+        recv_ipv4
+    filter {
+        (logon_auth_method == "remote" and subject == "account" and object == "session" and protocol.layer7 == "rdp" and action == "start" )
+
+    }
+
+event Brute_Force_Admin_claster:
+    key:
+        event_src.host
+    filter {
+        (subject.process.name == "mmc" and correlation_type == "incident" and correlation_name == "MMC_1C_Bruteforce_AdminClaster" )
+
+    }
+
+event Login_request_Admin_claster_true:
+    key:
+        event_src.host
+    filter {
+        (action == "access" and status == "success" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account")
+
+    }
+
+event Brute_Force_Admin_informBase:
+    key:
+        event_src.host
+    filter {
+        (subject.process.name == "mmc" and correlation_type == "incident" and correlation_name == "Bruteforce_1C_InforamitonBase_2")
+    }
+
+event BD_request_open_true:
+    key:
+        event_src.host
+    filter {
+        (status == "success" and object.name == "getBinaryDataStorages" and object == "database" and object.name == "getBinaryDataStorages" and subject.process.name == "mmc"  )
+    }
+
+
+event Open1c:
+    key:
+        recv_ipv4
+    filter {
+        (object.process.name == "1cv8s.exe" and status == "success" and object == "process" and action == "start" and object.process.parent.name == "1cestart.exe")
+
+    }
+
+event Connection1c:
+    key:
+        recv_ipv4 
+    filter {
+        (subject == "account" and action == "login" and status == "success" and object.name == "1CV8C")
+    }
+
+event Start_external_processing:
+    key:
+        event_src.host
+    filter {
+        (action == "execute" and object.type == "Сеанс. Подключение внешней обработки")
+    }
+
+
+event PowerShellUp:
+    key:
+        recv_ipv4 
+    filter {
+        (object.process.name == "powershell.exe" and object.process.parent.name == "1cv8c.exe" and action == "start" and status == "success")
+        
+    }
+
+rule ExternalDataProcessor1C:(
+
+
+Authentication_on_the_machine->Brute_Force_Admin_claster->Login_request_Admin_claster_true->Brute_Force_Admin_informBase->BD_request_open_true->Open1c->Connection1c->Start_external_processing->PowerShellUp) within 15m
+
+
+on Authentication_on_the_machine {
+    $subject.account.name = subject.account.name
+    $event_src.host = event_src.host
+}
+
+on Start_external_processing{
+    $object.value = object.value
+    $datafield9 = exec_query("ExternalTreatments",[$object.value])
+
+    if $datafield9 == "true" then
+        $datafield10 = "Обработка из табличного списка"
+    else
+        $datafield10 = "Обработка не из табличного списка"
+    endif
+    
+}
+
+on Login_request_Admin_claster_true{
+    $subject.process.name = subject.process.name
+}
+
+on  PowerShellUp {
+    $object.process.name = object.process.name
+
+}
+
+
+emit {
+    $correlation_name = "ExternalDataProcessor1C"
+    $correlation_type = "incident"
+
+    $category.generic = "Attacks & Recon"
+    $category.high = "Attack"
+    $category.low = "Potential Attack"
+
+    $datafield12 = "MITRE ATT&CK Тактики: TA0001 Initial Access, TA0006 Credential Access, TA0007 Discovery, TA0002 Execution, TA0040 Impact"
+
+    $datafield13 = "MITRE ATT&CK Техники: T1078 Valid Accounts, T1110 Brute Force, T1033 System Owner/User Discovery, T1059.001 PowerShell, T1569.002 Service Execution"
+
+    $datafield14 = "Cyber Kill Chain: Step 1 Initial Access → Step 3 Exploitation → Step 4 Privilege Escalation → Step 5 Internal Reconnaissance → Step 6 Execution → Step 7 Actions on Objectives"
+
+    $datafield15 = "БДУ ФСТЭК: Группа способов:	СП.17 Подбор (восстановление) аутентификационной информации"
+    $datafield16 = "БДУ ФСТЭК: Способ реализации: СП.17.1 Перебор паролей к учетной записи"
+
+    $datafield17 = "БДУ ФСТЭК: Группа способов:	СП.2 Использование недостатков конфигурации"
+    $datafield18 = "БДУ ФСТЭК: Способ реализации:	СП.2.2 Использование недостатков, связанных с управлением учетными даннымиа"
+    $datafield19 = "БДУ ФСТЭК: Способ реализации:	СП.2.11 Использование недостатков, связанных с некорректной настройкой прав доступа"
+
+    $id = "ExternalDataProcessor1C"
+    $importance = "high"
+}
