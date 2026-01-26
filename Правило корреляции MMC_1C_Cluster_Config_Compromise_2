@@ -1,0 +1,74 @@
+event Brute_Force_Admin_claster:
+    key:
+        event_src.host
+    filter {
+        (subject.process.name == "mmc" and correlation_type == "incident" and correlation_name == "MMC_1C_Bruteforce_AdminClaster" )
+
+    }
+
+event Login_request_Admin_claster_true:
+    key:
+        event_src.host
+    filter {
+        (action == "access" and status == "success" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account")
+
+    }
+
+event Config_OPen_server_cluster:
+    key:
+        event_src.host
+    filter {
+        (object.name == "regServers" and object == "system" and object.type == "IServerClusterAdmin" and subject.process.name == "mmc" and status == "success")
+
+    }
+
+event Change_setting_Server:
+    key:
+        event_src.host
+    filter {
+        (action == "modify" and object.name == "updateRegServer" and object == "service" and object.type == "IServerClusterAdmin" and status == "success" and subject.process.name == "mmc")
+
+    }
+
+
+rule MMC_1C_Cluster_Config_Compromise_2:(Brute_Force_Admin_claster and Login_request_Admin_claster_true and Config_OPen_server_cluster and Change_setting_Server) within 10m
+
+on Login_request_Admin_claster_true{
+    $event_src.host = event_src.host
+    $subject.process.name = subject.process.name
+
+}
+
+
+emit {
+    $correlation_name = "MMC_1C_Cluster_Config_Compromise_2"
+    $correlation_type = "incident"
+
+    $category.generic = "Attacks & Recon"
+    $category.high = "Attack"
+    $category.low = "Potential Attack"
+
+    $datafield12 = "MITRE ATT&CK Тактики: TA0006 Credential Access, TA0001 Initial Access, TA0007 Discovery, TA0040 Impact"
+
+    $datafield13 = "MITRE ATT&CK Техники: T1110 Brute Force, T1078 Valid Accounts, T1082 System Information Discovery, T1565 Data Manipulation"
+
+    $datafield14 = "Cyber Kill Chain: Step 3 Exploitation → Step 4 Initial Access → Step 5 Internal Reconnaissance → Step 7 Actions on Objectives"
+
+    $datafield15 = "БДУ ФСТЭК: Группа способов: СП.17 Получение (компрометация) учетных данных"
+    $datafield16 = "БДУ ФСТЭК: Способ реализации: СП.17.1 Перебор паролей к учетной записи"
+
+    $datafield17 = "БДУ ФСТЭК: Группа способов: СП.2 Использование недостатков конфигурации"
+    $datafield18 = "БДУ ФСТЭК: Способ реализации: СП.2.2 Использование недостатков, связанных с управлением учетными данными"
+
+    $datafield19 = "БДУ ФСТЭК: Группа способов:	СП.9 Изучение информации о системе"
+    $datafield20 = "БДУ ФСТЭК: Способ реализации: СП.9.5 Получение данных о настройках сети"
+
+    
+
+
+    $id = "MMC_1C_Cluster_Config_Compromise_2"
+    $importance = "high"
+}
+
+
+
