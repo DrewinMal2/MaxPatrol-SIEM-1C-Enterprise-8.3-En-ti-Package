@@ -1,0 +1,343 @@
+TEXT = '{NUMBER}:{NUMBER}.{NUMBER}-{NUMBER},{datafield1 = WORD},{NUMBER},level={importance = WORD},process={subject.process.name = WORD},OSThread={object.process.id = NUMBER},ClientID={subject.process.guid = NUMBER},Interface={interface=UNTIL(",")}IName={object.type = WORD},Method={NUMBER},CallID={NUMBER},MName={object.name = WORD},DstClientID={subject.account.session_id = STRING}'
+
+
+#Аунтентификация
+if (object.name == "agentAuthenticate") then
+    action = "access"
+    object = "client"
+    #Аунтентификация пройдена
+    if (subject.account.session_id == "0" ) then
+        status = "failure"
+    #Аунтентификация не пройдена
+    elif ( subject.account.session_id != "0") then 
+        status = "success"
+    endif
+endif
+
+#Попытка входа в администратора кластера 
+if (object.name == "regAuthenticate") then
+    action = "access"
+    object = "account"
+    
+    if (subject.account.session_id == "0") then
+        status = "failure"     # отказано в аутентификации
+    else
+        status = "success"     # успешная аутентификация
+    endif
+endif
+
+
+# Просмотр виртуальных каталогов в профиле безопасности
+if (object.name == "getSecurityProfileVirtualDirectoriesP") then
+    action = "open"
+    object = "policy"
+    object.type = "security_profile_virtual_directories"
+    status = "success"
+endif
+
+# Просмотр разрешённых COM-классов в профиле безопасности
+if (object.name == "getSecurityProfileComClassesP") then
+    action = "open"
+    object = "policy"
+    status = "success"
+endif
+
+# Просмотр внешних компонентов в профиле безопасности
+if (object.name == "getSecurityProfileAddInsP") then
+    action = "open"
+    object = "policy"
+    status = "success"
+endif
+
+# Просмотр небезопасных внешних модулей в профиле безопасности
+if (object.name == "getSecurityProfileUnSafeExternalModulesP") then
+    action = "open"
+    object = "policy"
+    status = "success"
+endif
+
+# Просмотр разрешённых приложений в профиле безопасности
+if (object.name == "getSecurityProfileApplicationsP") then
+    action = "open"
+    object = "policy"
+    status = "success"
+endif
+
+# Просмотр интернет-ресурсов в профиле безопасности
+if (object.name == "getSecurityProfileInternetResourcesP") then
+    action = "open"
+    object = "policy"
+    status = "success"
+endif
+
+# Создание регистрационного пользователя (администратора кластера)
+if (object.name == "insertRegUser") then
+    action = "modify"
+    object = "account"
+    object.id = "cluster_reg_user"
+    status = "success"
+endif
+
+# Реагирует на MName=agentUsers — админ MMC смотрит список пользователей агента
+if (object.name == "agentUsers") then
+    action = "open"
+    object = "account"
+    if (subject.account.session_id == "0") then
+        status = "failure"     
+    else
+        status = "success"     
+    endif
+endif
+
+# Реагирует на MName=connections — список сетевых подключений к кластеру
+if (object.name == "connections") then
+    action = "open"
+    object = "connection"
+    status = "success"
+endif
+
+# Реагирует на MName=serverProcessesForConnections — привязка коннектов к процессам
+if (object.name == "serverProcessesForConnections") then
+    action = "open"
+    object = "process"                      
+    status = "success"
+endif
+
+# Реагирует на MName=createRemoteInstance — создание удалённого админ-объекта
+if (object.name == "createRemoteInstance") then
+    action = "access"
+    object = "service"                      
+    status = "success"
+endif
+
+# Аутентификация серверного пользователя
+# Реагирует на MName=authenticateSrvrUser — аутентификация пользователя на сервере 1С
+if (object.name == "authenticateSrvrUser") then
+    action = "access"
+    object = "account"                      
+    status = "success"
+endif
+
+# Получение списка двоичных хранилищ
+# Реагирует на MName=getBinaryDataStorages — доступ к подсистеме хранения двоичных данных
+if (object.name == "getBinaryDataStorages") then
+    action = "open"
+    object = "database"
+    #Аунтентификация пройдена
+    if (subject.account.session_id == "0" ) then
+        status = "failure"
+    #Аунтентификация не пройдена
+    elif ( subject.account.session_id != "0") then 
+        status = "success"
+    endif
+endif
+
+# Аутентификация администратора кластера
+# Реагирует на MName=authenticateAdmin — вход/попытка входа администратора кластера
+if (object.name == "authenticateAdmin") then
+    action = "access"
+    object = "account"                  
+    status = "ongoing"                  
+endif
+
+# Получение списка клиентских процессов
+# Реагирует на MName=clients — список клиентских процессов (тонкие/толстые клиенты)
+if (object.name == "clients") then
+    action = "open"
+    object = "process"
+    if (subject.account.session_id == "0" ) then
+        status = "failure"
+    elif ( subject.account.session_id != "0") then 
+        status = "success"
+    endif
+    
+endif
+
+# Получение списка информационных баз
+if (object.name == "infoBases") then
+    action = "open"
+    object = "database"
+    if (subject.account.session_id == "0" ) then
+        status = "failure"
+    elif ( subject.account.session_id != "0") then 
+        status = "success"
+    endif
+    
+endif
+
+# Удаление профиля безопасности
+if (object.name == "dropSecurityProfile") then
+    action = "remove"
+    object = "policy"
+    status = "success"
+endif
+
+if (object.name == "createSecurityProfile") then
+    action = "create"
+    object = "policy"
+    status = "success"
+endif
+
+
+# Получение списка сеансов пользователей
+# Реагирует на MName=getSeances — просмотр активных сеансов
+if (object.name == "getSeances") then
+    action = "open"
+    object = "session"
+    status = "success"
+endif
+
+#Завершение сеанса пользователя через mmc
+if (object.name == "eraseSeance") then
+    action = "stop"               
+    object = "session"            
+    status = "success"            
+endif
+
+# Получение путей данных серверов кластера
+if (object.name == "updateRegServer") then
+    action = "modify"
+    object = "service"
+    status = "success"
+endif
+
+# Применение настроек серверов кластера
+if (object.name == "applyServiceSetting") then
+    action = "modify"
+    object = "service"
+    status = "success"
+endif
+
+
+# Получение таблицы блокировок объектов
+# Реагирует на MName=objectLocks — просмотр блокировок метаданных/объектов
+if (object.name == "objectLocks") then
+    action = "open"
+    object = "ds_object"
+    status = "success"
+endif
+
+
+# Получение количества методов интерфейса
+# Реагирует на MName=methodsCount — служебный introspection вызов
+if (object.name == "methodsCount") then
+    action = "read"
+    object = "system"                       
+    status = "success"
+endif
+
+
+
+# Получение списка зарегистрированных серверов кластера
+# Реагирует на MName=regServers — список серверов кластера 1С
+if (object.name == "regServers") then
+    action = "open"
+    object = "system"
+    if (subject.account.session_id == "0" ) then
+        status = "failure"
+    elif ( subject.account.session_id != "0") then 
+        status = "success"
+    endif
+endif
+
+# Получение списка менеджеров кластера
+# Реагирует на MName=clusterManagers — информация о менеджерах кластера
+if (object.name == "clusterManagers") then
+    action = "open"
+    object = "db_object"
+    status = "success"
+endif
+
+# Получение информации о сервисах кластера
+# Реагирует на MName=getServiceInfoList — список сервисов кластера
+if (object.name == "getServiceInfoList") then
+    action = "open"
+    object = "service"
+    status = "success"
+endif
+
+# Получение списка сервисов менеджера кластера
+# Реагирует на MName=rmngrServices — сервисы remote manager’а
+if (object.name == "rmngrServices") then
+    action = "open"
+    object = "service"
+    status = "success"
+endif
+
+# Получение профилей безопасности
+# Реагирует на MName=getSecurityProfiles — политики безопасности кластера
+if (object.name == "getSecurityProfiles") then
+    action = "open"
+    object = "policy"                       
+    if (subject.account.session_id == "0" ) then
+        status = "failure"
+    elif ( subject.account.session_id != "0") then 
+        status = "success"
+    endif
+endif
+
+# Получение счётчиков ресурсов
+# Реагирует на MName=getResourceCounters — текущая загрузка ресурсов
+if (object.name == "getResourceCounters") then
+    action = "open"
+    object = "resource"               
+    status = "success"
+endif
+
+# Получение ограничений по ресурсам
+# Реагирует на MName=getResourceLimits — лимиты по ресурсам
+if (object.name == "getResourceLimits") then
+    action = "open"
+    object = "resource"               
+    status = "success"
+endif
+
+# Создание администратора кластера
+# Реагирует на MName=insertAgentUser — добавление admin-пользователя агента
+if (object.name == "insertAgentUser") then
+    action = "modify"                       
+    object = "account"
+    object.id = "cluster_admin"             
+    status = "success"
+endif
+
+# Удаление администратора кластера
+# Реагирует на MName=eraseAgentUser — удаление admin-пользователя агента
+if (object.name == "eraseAgentUser") then
+    action = "modify"
+    object = "account"
+    object.id = "cluster_admin"
+    status = "success"
+endif
+
+#Удаление зарегистрированного пользователя кластера 1С (НE агента, это другое действие).
+if (object.name == "eraseRegUser") then
+    action = "modify"
+    object = "account"
+    status = "success"
+endif
+
+#Получение правил распределения (assignment rules) внутри кластера.
+if (object.name == "getAssignmentRules") then
+    action = "open"
+    object = "policy"
+    status = "success"
+endif
+
+#Запрос текущих настроек сервисов кластера.
+if (object.name == "getServiceSettings") then
+    action = "open"
+    object = "service"
+    status = "success"
+endif
+
+#Аналог serverProcesses — расширенный список серверных процессов.
+if (object.name == "serverProcesses2") then
+    action = "open"
+    object = "process"
+    status = "success"
+endif
+
+datafield9 = "Уникиальный индитефикатор администратора: " + subject.process.guid
+time = "2017-10-18T12:00:00Z"
+id = "Technical_Journal"
