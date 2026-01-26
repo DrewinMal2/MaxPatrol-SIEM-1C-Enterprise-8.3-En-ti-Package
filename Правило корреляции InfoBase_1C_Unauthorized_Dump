@@ -1,0 +1,95 @@
+event Brute_Force_Admin_claster:
+    key:
+        event_src.host
+    filter {
+        (subject.process.name == "mmc" and correlation_type == "incident" and correlation_name == "MMC_1C_Bruteforce_AdminClaster" )
+
+    }
+
+event Login_request_Admin_claster_true:
+    key:
+        event_src.host
+    filter {
+        (action == "access" and status == "success" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account")
+
+    }
+
+event Open_list_of_sessions:
+    key:
+        event_src.host
+    filter {
+        (action == "open" and object.name == "getSeances" and object.name == "getSeances" and object.type == "IServerClusterAdmin" and subject.process.name == "mmc")
+    }
+
+event Close_of_sessions:
+    key:
+        event_src.host
+    filter {
+        (action == "stop" and object.name == "eraseSeance" and object == "session" and object.type == "IServerClusterAdmin" and subject.process.name == "mmc")
+
+    }
+
+event Brute_Force_Admin_informBase:
+    key:
+        event_src.host
+    filter {
+        (subject.process.name == "mmc" and correlation_type == "incident" and correlation_name == "Bruteforce_1C_InforamitonBase_2")
+
+    }
+
+event BD_request_open_true:
+    key:
+        event_src.host
+    filter {
+        (status == "success" and object.name == "getBinaryDataStorages" and object == "database" and object.name == "getBinaryDataStorages" and subject.process.name == "mmc"  )
+    }
+
+event configurator_open:
+    key:
+        recv_ipv4 
+    filter {
+        (subject == "account" and action == "login" and object == "application" and status == "success" and subject.account.name == "administrator" and subject.account.provider == "local")
+    }
+
+event info_base_load:
+    key:
+        event_src.host 
+    filter {
+        (action == "execute" and object == "database" and status == "success" and object.type == "Информационная база. Начало выгрузки в файл")
+    }
+
+
+rule InfoBase_1C_Unauthorized_Dump:(
+
+Brute_Force_Admin_claster->Login_request_Admin_claster_true->Open_list_of_sessions->Close_of_sessions[2]->Brute_Force_Admin_informBase->BD_request_open_true->configurator_open->info_base_load ) within 25m
+
+
+on Login_request_Admin_claster_true {
+    $event_src.host = event_src.host
+    $subject.process.name = subject.process.name
+}
+
+emit {
+    $correlation_name = "InfoBase_1C_Unauthorized_Dump"
+    $correlation_type = "incident"
+
+    $category.generic = "Attacks & Recon"
+    $category.high = "Attack"
+    $category.low = "Potential Attack"
+
+    $id = "InfoBase_1C_Unauthorized_Dump"
+    $importance = "high"
+
+    $datafield12 = "MITRE ATT&CK Тактики: TA0006 Credential Access, TA0001 Initial Access, TA0007 Discovery, TA0040 Impact, TA0009 Collection, TA0010 Exfiltration"
+
+    $datafield13 = "MITRE ATT&CK Техники: T1110 Brute Force, T1078 Valid Accounts, T1033 System Owner/User Discovery, T1531 Account Access Removal, T1005 Data from Local System"
+
+    $datafield14 = "Cyber Kill Chain: Step 3 Exploitation → Step 4 Initial Access → Step 5 Internal Reconnaissance → Step 6 Collection → Step 7 Exfiltration"
+
+    $datafield15 = "БДУ ФСТЭК: Группа способов: СП.17 Получение (компрометация) учетных данных"
+    $datafield16 = "БДУ ФСТЭК: Способ реализации: СП.17.1 Перебор паролей к учетной записи"
+
+    $datafield17 = "БДУ ФСТЭК: Группа способов:	СП.9 Изучение информации о системе"
+    $datafield18 = "БДУ ФСТЭК: Способ реализации: СП.9.1 Получение данных о пользователях и группах"
+    $datafield19 = "БДУ ФСТЭК: Способ реализации: СП.9.4 Получение данных о настройках безопасности"
+}
