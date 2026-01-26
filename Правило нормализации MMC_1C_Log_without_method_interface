@@ -1,0 +1,11 @@
+TEXT = '{NUMBER}:{NUMBER}.{NUMBER}-{NUMBER},{datafield1 = WORD},{NUMBER},level={importance = WORD},process={subject.process.name = WORD},OSThread={object.process.id = NUMBER},ClientID={subject.process.guid = NUMBER},CallID={NUMBER},MName={object.name = WORD},DstClientID={subject.account.session_id = STRING}'
+
+#Выход администратора сервера
+if (object.name == "Release") then
+    action = "logout"
+    object = "session"                      
+    status = "success"
+endif
+
+time = "2017-10-18T12:00:00Z"
+id = "Technical_Journal_2"
