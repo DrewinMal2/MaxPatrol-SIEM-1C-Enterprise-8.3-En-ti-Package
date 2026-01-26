@@ -1,0 +1,142 @@
+event Login_request:
+    filter {
+        (object.name == "authenticateAdmin" and status == "ongoing" and object == "account" and action == "access" and subject.process.name == "mmc")
+
+    }
+
+event BD_request_open:
+    filter {
+        (status == "failure" and object.name == "getBinaryDataStorages" and object == "database" and object.name == "getBinaryDataStorages" and subject.process.name == "mmc"  )
+    }
+
+event Login_request_Admin_claster_2:
+    filter {
+        (action == "access" and status == "failure" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account") #and filter::FromCorrelator())
+
+    }
+
+event Login_request_Admin_claster_true:
+
+    filter {
+        (action == "access" and status == "success" and object.name == "regAuthenticate" and object.type == "IServerClusterAdmin" and object == "account")
+
+    }
+
+event Open_list_of_sessions:
+    filter {
+        (action == "open" and object.name == "getSeances" and object.name == "getSeances" and object.type == "IServerClusterAdmin" and subject.process.name == "mmc")
+    }
+
+event Close_of_sessions:
+
+    filter {
+        (action == "stop" and object.name == "eraseSeance" and object == "session" and object.type == "IServerClusterAdmin" and subject.process.name == "mmc")
+
+    }
+
+event BD_request_open_true:
+    key:
+        event_src.host
+    filter {
+        (status == "success" and object.name == "getBinaryDataStorages" and object == "database" and object.name == "getBinaryDataStorages" and subject.process.name == "mmc"  )
+    }
+
+event configurator_open:
+
+    filter {
+        (subject == "account" and action == "login" and object == "application" and status == "success" and subject.account.name == "administrator" and subject.account.provider == "local")
+    }
+
+event info_base_load:
+
+    filter {
+        (action == "execute" and object == "database" and status == "success" and object.type == "Информационная база. Начало выгрузки в файл")
+    }
+
+
+enrichment MMC_1C_MITRE_ATTCK_and_Kill_chain
+    enrich  Login_request:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Credential Access (TA0006)"
+            datafield13 = "MITRE ATT&CK Техника: T1110 – Brute Force"
+            datafield14 = "Cyber Kill Chain: Step 4 - Exploitation"
+                
+            }
+
+    enrich  BD_request_open:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Credential Access (TA0006)"
+            datafield13 = "MITRE ATT&CK Техника: T1110 – Brute Force"
+            datafield14 = "Cyber Kill Chain: Step 4 - Exploitation"
+                
+            }
+    
+    enrich  Login_request_Admin_claster_2:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Credential Access (TA0006)"
+            datafield13 = "MITRE ATT&CK Техника: T1110 – Brute Force"
+            datafield14 = "Cyber Kill Chain: Step 4 - Exploitation"
+                
+            }
+    
+    enrich  Login_request_Admin_claster_true:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Initial Access (TA0001)"
+            datafield13 = "MITRE ATT&CK Техника: T1078 – Valid Accounts"
+            datafield14 = "Cyber Kill Chain: Step 4 - Exploitation"
+                
+            }
+    
+    enrich  Open_list_of_sessions:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Discovery TA0007"
+            datafield13 = "MITRE ATT&CK Техника: T1033 – System Owner/User Discovery"
+            datafield14 = "Kill Chain: Step 5 - Internal Reconnaissance"
+
+            }
+    
+    enrich  Open_list_of_sessions:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Impact TA0040"
+            datafield13 = "MITRE ATT&CK Техника: T1531 – Account Access Removal"
+            datafield14 = "Kill Chain: Step 7 - Actions on Objectives"
+
+            }
+    
+    enrich  BD_request_open_true:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Collection TA0009"
+            datafield13 = "MITRE ATT&CK Техника: T1005 – Data from Local System"
+            datafield14 = "Kill Chain: Step 6 - Collection"
+
+            }
+    
+    enrich  configurator_open:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Initial Access TA0001"
+            datafield13 = "MITRE ATT&CK Техника: T1078 – Valid Accounts"
+            datafield14 = "Kill Chain: Step 4 - Initial Access"
+
+
+            }
+
+    enrich  info_base_load:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Exfiltration TA0010"
+            datafield13 = "MITRE ATT&CK Техника: T1005 – Data from Local System"
+            datafield14 = "Kill Chain: Step 7 - Exfiltration"
+
+            }
+
+
+
+
