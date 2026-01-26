@@ -1,0 +1,72 @@
+event Authentication_on_the_machine_MITRE_ATTCK_and_Kill_chain:
+    filter {
+        logon_auth_method == "remote" and subject == "account" and object == "session" and protocol.layer7 == "rdp" and action == "start"
+    }
+
+event Open1c_MITRE_ATTCK_and_Kill_chain:
+    filter {
+        object.process.name == "1cv8s.exe" and status == "success" and object == "process" and action == "start" and object.process.parent.name == "1cestart.exe"
+    }
+
+event Connection1c_MITRE_ATTCK_and_Kill_chain:
+    filter {
+        subject == "account" and action == "login" and status == "success" and object.name == "1CV8C"
+    }
+
+event Start_external_processing_MITRE_ATTCK_and_Kill_chain:
+    filter {
+        action == "execute" and object.type == "Сеанс. Подключение внешней обработки"
+    }
+
+event PowerShellUp_MITRE_ATTCK_and_Kill_chain:
+    filter {
+        object.process.name == "powershell.exe" and object.process.parent.name == "1cv8c.exe" and action == "start" and status == "success"
+    }
+
+
+enrichment c1_MITRE_ATTCK_and_Kill_chain
+    enrich  Authentication_on_the_machine_MITRE_ATTCK_and_Kill_chain:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Initial Access TA0001"
+            datafield13 = "MITRE ATT&CK Техника: T1078 – Valid Accounts"
+            datafield14 = "Kill Chain: Step 3 - Delivery"
+                
+            }
+    enrich  Open1c_MITRE_ATTCK_and_Kill_chain:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Execution TA0002"
+            datafield13 = "MITRE ATT&CK Техника: T1204 – User Execution"
+            datafield14 = "Kill Chain: Step 4 - Exploitation"
+                
+            }
+
+    enrich  Connection1c_MITRE_ATTCK_and_Kill_chain:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Discovery TA0007"
+            datafield13 = "MITRE ATT&CK Техника: T1518 – Software Discovery"
+            datafield14 = "Kill Chain: Step 4 - Exploitation"
+                
+            }
+    
+    enrich  Start_external_processing_MITRE_ATTCK_and_Kill_chain:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Execution TA0002"
+            datafield13 = "MITRE ATT&CK Техника: T1204 – User Execution"
+            datafield14 = "Kill Chain: Step 5 - Installation"
+                
+            }
+
+    enrich  PowerShellUp_MITRE_ATTCK_and_Kill_chain:
+        enrich_fields {
+
+            datafield12 = "MITRE ATT&CK Тактика: Execution TA0002"
+            datafield13 = "MITRE ATT&CK Техника: T1059.001 – PowerShell, T1202 – Indirect Command Execution"
+            datafield14 = "Kill Chain: Step 6,7 - C2 / Actions on Objectives"
+                
+            }
+    
+    
