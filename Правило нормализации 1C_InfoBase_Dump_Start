@@ -1,0 +1,24 @@
+JSON = 'Event.Event="_$InfoBase$_.DumpStart"'
+
+COND = ($Event["UserName"]=="vmalyshev" and $Event["ApplicationPresentation"] == "Конфигуратор" and $Event["Event"] == "_$InfoBase$_.DumpStart")
+
+
+subject.account.id = $Event["User"]
+subject.account.name = $Event["UserName"]
+subject.account.session_id = $Event["Session"]
+src.hostname = $Event["Computer"]
+
+object.type = $Event["EventPresentation"]
+object.path = $Event["Comment"]
+ 
+datafield1 = $Event["Port"]
+datafield2 = $Event["ApplicationPresentation"]
+
+
+
+time = $Event['Date']
+importance = 'medium'
+status = "success"
+object = "database"
+action = "execute"
+id = '1CExternal processing'
