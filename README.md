@@ -5,6 +5,6 @@
 Актуальная версия файла модели доступна для загрузки по ссылке:
 
 **Яндекс.Диск:**  
-https://disk.yandex.ru/client/disk/1C-Enterprise-8.3-En-ti-Package 
+https://disk.yandex.ru/d/3D8xOlGWum7S1w
 
 После загрузки файл может быть импортирован в MaxPatrol SIEM стандартными средствами системы.
